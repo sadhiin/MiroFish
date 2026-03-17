@@ -5,8 +5,11 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
+    host: true,
     port: 3000,
-    open: true,
+    cors: true,
+    strictPort: true,
+    allowedHosts: ['.litng.ai'],
     proxy: {
       '/api': {
         target: 'http://localhost:5001',
