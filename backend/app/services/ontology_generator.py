@@ -151,6 +151,7 @@ B. **Specific Types (8, designed based on text content)**:
 - OPPOSES: Opposes
 - COLLABORATES_WITH: Collaborates with
 - COMPETES_WITH: Competes with
+"""
 
 
 class OntologyGenerator:
