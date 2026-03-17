@@ -198,92 +198,92 @@ class GraphBuilderService:
     
     def set_ontology(self, graph_id: str, ontology: Dict[str, Any]):
         """Set graph ontology (public method)"""
-import warnings
-from typing import Optional
-from pydantic import Field
-from zep_cloud.external_clients.ontology import EntityModel, EntityText, EdgeModel
-
-# Suppress Pydantic v2 warnings about Field(default=None)
-# This is required by Zep SDK, warnings come from dynamic class creation and can be safely ignored
-warnings.filterwarnings('ignore', category=UserWarning, module='pydantic')
-
-# Zep reserved names, cannot be used as attribute names
-RESERVED_NAMES = {'uuid', 'name', 'group_id', 'name_embedding', 'summary', 'created_at'}
-
-def safe_attr_name(attr_name: str) -> str:
-    """Convert reserved names to safe names"""
-    if attr_name.lower() in RESERVED_NAMES:
-        return f"entity_{attr_name}"
-    return attr_name
-
-# Dynamically create entity types
-entity_types = {}
-for entity_def in ontology.get("entity_types", []):
-    name = entity_def["name"]
-    description = entity_def.get("description", f"A {name} entity.")
-    
-    # Create attribute dictionary and type annotations (required by Pydantic v2)
-    attrs = {"__doc__": description}
-    annotations = {}
-    
-    for attr_def in entity_def.get("attributes", []):
-        attr_name = safe_attr_name(attr_def["name"])  # Use safe name
-        attr_desc = attr_def.get("description", attr_name)
-        # Zep API requires Field's description, this is mandatory
-        attrs[attr_name] = Field(description=attr_desc, default=None)
-        annotations[attr_name] = Optional[EntityText]  # Type annotation
-    
-    attrs["__annotations__"] = annotations
-    
-    # Dynamically create class
-    entity_class = type(name, (EntityModel,), attrs)
-    entity_class.__doc__ = description
-    entity_types[name] = entity_class
-
-# Dynamically create edge types
-edge_definitions = {}
-for edge_def in ontology.get("edge_types", []):
-    name = edge_def["name"]
-    description = edge_def.get("description", f"A {name} relationship.")
-    
-    # Create attribute dictionary and type annotations
-    attrs = {"__doc__": description}
-    annotations = {}
-    
-    for attr_def in edge_def.get("attributes", []):
-        attr_name = safe_attr_name(attr_def["name"])  # Use safe name
-        attr_desc = attr_def.get("description", attr_name)
-        # Zep API requires Field's description, this is mandatory
-        attrs[attr_name] = Field(description=attr_desc, default=None)
-        annotations[attr_name] = Optional[str]  # Edge attributes use str type
-    
-    attrs["__annotations__"] = annotations
-    
-    # Dynamically create class
-    class_name = ''.join(word.capitalize() for word in name.split('_'))
-    edge_class = type(class_name, (EdgeModel,), attrs)
-    edge_class.__doc__ = description
-    
-    # Build source_targets
-    source_targets = []
-    for st in edge_def.get("source_targets", []):
-        source_targets.append(
-            EntityEdgeSourceTarget(
-                source=st.get("source", "Entity"),
-                target=st.get("target", "Entity")
+        import warnings
+        from typing import Optional
+        from pydantic import Field
+        from zep_cloud.external_clients.ontology import EntityModel, EntityText, EdgeModel
+        
+        # Suppress Pydantic v2 warnings about Field(default=None)
+        # This is required by Zep SDK, warnings come from dynamic class creation and can be safely ignored
+        warnings.filterwarnings('ignore', category=UserWarning, module='pydantic')
+        
+        # Zep reserved names, cannot be used as attribute names
+        RESERVED_NAMES = {'uuid', 'name', 'group_id', 'name_embedding', 'summary', 'created_at'}
+        
+        def safe_attr_name(attr_name: str) -> str:
+            """Convert reserved names to safe names"""
+            if attr_name.lower() in RESERVED_NAMES:
+                return f"entity_{attr_name}"
+            return attr_name
+        
+        # Dynamically create entity types
+        entity_types = {}
+        for entity_def in ontology.get("entity_types", []):
+            name = entity_def["name"]
+            description = entity_def.get("description", f"A {name} entity.")
+            
+            # Create attribute dictionary and type annotations (required by Pydantic v2)
+            attrs = {"__doc__": description}
+            annotations = {}
+            
+            for attr_def in entity_def.get("attributes", []):
+                attr_name = safe_attr_name(attr_def["name"])  # Use safe name
+                attr_desc = attr_def.get("description", attr_name)
+                # Zep API requires Field's description, this is mandatory
+                attrs[attr_name] = Field(description=attr_desc, default=None)
+                annotations[attr_name] = Optional[EntityText]  # Type annotation
+            
+            attrs["__annotations__"] = annotations
+            
+            # Dynamically create class
+            entity_class = type(name, (EntityModel,), attrs)
+            entity_class.__doc__ = description
+            entity_types[name] = entity_class
+        
+        # Dynamically create edge types
+        edge_definitions = {}
+        for edge_def in ontology.get("edge_types", []):
+            name = edge_def["name"]
+            description = edge_def.get("description", f"A {name} relationship.")
+            
+            # Create attribute dictionary and type annotations
+            attrs = {"__doc__": description}
+            annotations = {}
+            
+            for attr_def in edge_def.get("attributes", []):
+                attr_name = safe_attr_name(attr_def["name"])  # Use safe name
+                attr_desc = attr_def.get("description", attr_name)
+                # Zep API requires Field's description, this is mandatory
+                attrs[attr_name] = Field(description=attr_desc, default=None)
+                annotations[attr_name] = Optional[str]  # Edge attributes use str type
+            
+            attrs["__annotations__"] = annotations
+            
+            # Dynamically create class
+            class_name = ''.join(word.capitalize() for word in name.split('_'))
+            edge_class = type(class_name, (EdgeModel,), attrs)
+            edge_class.__doc__ = description
+            
+            # Build source_targets
+            source_targets = []
+            for st in edge_def.get("source_targets", []):
+                source_targets.append(
+                    EntityEdgeSourceTarget(
+                        source=st.get("source", "Entity"),
+                        target=st.get("target", "Entity")
+                    )
+                )
+            
+            if source_targets:
+                edge_definitions[name] = (edge_class, source_targets)
+        
+        # Call Zep API to set ontology
+        if entity_types or edge_definitions:
+            self.client.graph.set_ontology(
+                graph_ids=[graph_id],
+                entities=entity_types if entity_types else None,
+                edges=edge_definitions if edge_definitions else None,
             )
-        )
-    
-    if source_targets:
-        edge_definitions[name] = (edge_class, source_targets)
-
-# Call Zep API to set ontology
-if entity_types or edge_definitions:
-    self.client.graph.set_ontology(
-        graph_ids=[graph_id],
-        entities=entity_types if entity_types else None,
-        edges=edge_definitions if edge_definitions else None,
-    )
 
 def add_text_batches(
     self,
