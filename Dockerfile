@@ -8,6 +8,9 @@ RUN apt-get update \
 # 从 uv 官方镜像复制 uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
 
+# 设置 UV 增加超时时间以防止网络波动导致安装失败
+ENV UV_HTTP_TIMEOUT=300
+
 WORKDIR /app
 
 # 先复制依赖描述文件以利用缓存
