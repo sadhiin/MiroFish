@@ -285,56 +285,56 @@ class GraphBuilderService:
                 edges=edge_definitions if edge_definitions else None,
             )
 
-def add_text_batches(
-    self,
-    graph_id: str,
-    chunks: List[str],
-    batch_size: int = 3,
-    progress_callback: Optional[Callable] = None
-) -> List[str]:
-    """Add text to the graph in batches, return a list of all episode uuids"""
-    episode_uuids = []
-    total_chunks = len(chunks)
-    
-    for i in range(0, total_chunks, batch_size):
-        batch_chunks = chunks[i:i + batch_size]
-        batch_num = i // batch_size + 1
-        total_batches = (total_chunks + batch_size - 1) // batch_size
+    def add_text_batches(
+        self,
+        graph_id: str,
+        chunks: List[str],
+        batch_size: int = 3,
+        progress_callback: Optional[Callable] = None
+    ) -> List[str]:
+        """Add text to the graph in batches, return a list of all episode uuids"""
+        episode_uuids = []
+        total_chunks = len(chunks)
+        
+        for i in range(0, total_chunks, batch_size):
+            batch_chunks = chunks[i:i + batch_size]
+            batch_num = i // batch_size + 1
+            total_batches = (total_chunks + batch_size - 1) // batch_size
 
-        if progress_callback:
-            progress = (i + len(batch_chunks)) / total_chunks
-            progress_callback(
-                f"Sending batch {batch_num}/{total_batches} data ({len(batch_chunks)} chunks)...",
-                progress
-            )
-
-        # Construct episode data
-        episodes = [
-            EpisodeData(data=chunk, type="text")
-            for chunk in batch_chunks
-        ]
-
-        # Send to Zep
-        try:
-            batch_result = self.client.graph.add_batch(
-                graph_id=graph_id,
-                episodes=episodes
-            )
-
-            # Collect returned episode uuid
-            if batch_result and isinstance(batch_result, list):
-                for ep in batch_result:
-                    ep_uuid = getattr(ep, 'uuid_', None) or getattr(ep, 'uuid', None)
-                    if ep_uuid:
-                        episode_uuids.append(ep_uuid)
-
-            # Avoid requests being too fast
-            time.sleep(1)
-
-        except Exception as e:
             if progress_callback:
-                progress_callback(f"Batch {batch_num} failed to send: {str(e)}", 0)
-            raise
+                progress = (i + len(batch_chunks)) / total_chunks
+                progress_callback(
+                    f"Sending batch {batch_num}/{total_batches} data ({len(batch_chunks)} chunks)...",
+                    progress
+                )
+
+            # Construct episode data
+            episodes = [
+                EpisodeData(data=chunk, type="text")
+                for chunk in batch_chunks
+            ]
+
+            # Send to Zep
+            try:
+                batch_result = self.client.graph.add_batch(
+                    graph_id=graph_id,
+                    episodes=episodes
+                )
+
+                # Collect returned episode uuid
+                if batch_result and isinstance(batch_result, list):
+                    for ep in batch_result:
+                        ep_uuid = getattr(ep, 'uuid_', None) or getattr(ep, 'uuid', None)
+                        if ep_uuid:
+                            episode_uuids.append(ep_uuid)
+
+                # Avoid requests being too fast
+                time.sleep(1)
+
+            except Exception as e:
+                if progress_callback:
+                    progress_callback(f"Batch {batch_num} failed to send: {str(e)}", 0)
+                raise
         
         return episode_uuids
     
@@ -398,7 +398,8 @@ def add_text_batches(
         """Get graph information"""
         # Get nodes (pagination)
         nodes = fetch_all_nodes(self.client, graph_id)
-# Get edges (pagination)
+
+        # Get edges (pagination)
         edges = fetch_all_edges(self.client, graph_id)
 
         # Count entity types
