@@ -582,6 +582,7 @@ Field description:
 - morning_hours (int array): Morning periods
 - work_hours (int array): Work periods
 - reasoning (string): Brief explanation of why this configuration
+"""
 
         system_prompt = "You are a social media simulation expert. Return in pure JSON format, time configuration needs to conform to Chinese time habits."
         
@@ -697,6 +698,8 @@ Return in JSON format (no markdown):
         ...
     ],
     "reasoning": "<Brief explanation>"
+}}"""
+
         system_prompt = "You are a public opinion analysis expert. Return in pure JSON format. Note that poster_type must precisely match available entity types."
         
         try:

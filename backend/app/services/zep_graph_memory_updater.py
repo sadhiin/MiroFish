@@ -96,6 +96,8 @@ class AgentActivity:
         """Reposted post - includes original post content and author information"""
         original_content = self.action_args.get("original_content", "")
         original_author = self.action_args.get("original_author_name", "")
+        
+        if original_content and original_author:
             return f"Forwarded {original_author}'s post: \"{original_content}\""
         elif original_content:
             return f"Forwarded a post: \"{original_content}\""

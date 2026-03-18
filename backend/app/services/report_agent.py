@@ -398,20 +398,20 @@ class ReportStatus(str, Enum):
 class ReportSection:
     """Report section"""
     title: str
-content: str = ""
+    content: str = ""
 
-def to_dict(self) -> Dict[str, Any]:
-    return {
-        "title": self.title,
-        "content": self.content
-    }
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "title": self.title,
+            "content": self.content
+        }
 
-def to_markdown(self, level: int = 2) -> str:
-    """Convert to Markdown format"""
-    md = f"{'#' * level} {self.title}\n\n"
-    if self.content:
-        md += f"{self.content}\n\n"
-    return md
+    def to_markdown(self, level: int = 2) -> str:
+        """Convert to Markdown format"""
+        md = f"{'#' * level} {self.title}\n\n"
+        if self.content:
+            md += f"{self.content}\n\n"
+        return md
 
 
 @dataclass
@@ -592,7 +592,6 @@ Variables injected into the simulated world (simulation requirements): {simulati
 - Number of active Agents: {total_entities}
 
 【Sample of Some Future Facts Predicted by the Simulation】
-"""
 {related_facts_json}
 
 Please examine this future preview from a "God's perspective":
@@ -693,7 +692,6 @@ The Douyin platform further amplified the event's influence:
 ### 1. Initial Stage          ← Incorrect! Do not use ### to subdivide sections
 #### 1.1 Detailed Analysis    ← Incorrect! Do not use #### for detailed subdivision
 
-"""
 This section analyzes...
 ```
 
@@ -794,10 +792,10 @@ Observation (Retrieval Result):
 ═══ Tool {tool_name} Returns ═══
 {result}
 
-"""
 Called tools {tool_calls_count}/{max_tool_calls} times (used: {used_tools_str}){unused_hint}
 - If the information is sufficient: output the section content starting with "Final Answer:" (must quote the original text above)
 - If more information is needed: call a tool to continue searching
+"""
 
 REACT_INSUFFICIENT_TOOLS_MSG = (
     "[Note] You have only called the tool {tool_calls_count} times, at least {min_tool_calls} times are needed."
@@ -1889,107 +1887,106 @@ class ReportManager:
         full_report.md     - Full report
     """
     
-# Report storage directory
-REPORTS_DIR = os.path.join(Config.UPLOAD_FOLDER, 'reports')
+    # Report storage directory
+    REPORTS_DIR = os.path.join(Config.UPLOAD_FOLDER, 'reports')
 
-@classmethod
-def _ensure_reports_dir(cls):
-    """Ensure the report root directory exists"""
-    os.makedirs(cls.REPORTS_DIR, exist_ok=True)
+    @classmethod
+    def _ensure_reports_dir(cls):
+        """Ensure the report root directory exists"""
+        os.makedirs(cls.REPORTS_DIR, exist_ok=True)
 
-@classmethod
-def _get_report_folder(cls, report_id: str) -> str:
-    """Get the report folder path"""
-    return os.path.join(cls.REPORTS_DIR, report_id)
+    @classmethod
+    def _get_report_folder(cls, report_id: str) -> str:
+        """Get the report folder path"""
+        return os.path.join(cls.REPORTS_DIR, report_id)
 
-@classmethod
-def _ensure_report_folder(cls, report_id: str) -> str:
-    """Ensure the report folder exists and return the path"""
-    folder = cls._get_report_folder(report_id)
-    os.makedirs(folder, exist_ok=True)
-    return folder
+    @classmethod
+    def _ensure_report_folder(cls, report_id: str) -> str:
+        """Ensure the report folder exists and return the path"""
+        folder = cls._get_report_folder(report_id)
+        os.makedirs(folder, exist_ok=True)
+        return folder
 
-@classmethod
-def _get_report_path(cls, report_id: str) -> str:
-    """Get the report metadata file path"""
-    return os.path.join(cls._get_report_folder(report_id), "meta.json")
+    @classmethod
+    def _get_report_path(cls, report_id: str) -> str:
+        """Get the report metadata file path"""
+        return os.path.join(cls._get_report_folder(report_id), "meta.json")
 
-@classmethod
-def _get_report_markdown_path(cls, report_id: str) -> str:
-    """Get the full report Markdown file path"""
-    return os.path.join(cls._get_report_folder(report_id), "full_report.md")
+    @classmethod
+    def _get_report_markdown_path(cls, report_id: str) -> str:
+        """Get the full report Markdown file path"""
+        return os.path.join(cls._get_report_folder(report_id), "full_report.md")
 
-@classmethod
-def _get_outline_path(cls, report_id: str) -> str:
-    """Get the outline file path"""
-    return os.path.join(cls._get_report_folder(report_id), "outline.json")
+    @classmethod
+    def _get_outline_path(cls, report_id: str) -> str:
+        """Get the outline file path"""
+        return os.path.join(cls._get_report_folder(report_id), "outline.json")
 
-@classmethod
-def _get_progress_path(cls, report_id: str) -> str:
-    """Get the progress file path"""
-    return os.path.join(cls._get_report_folder(report_id), "progress.json")
+    @classmethod
+    def _get_progress_path(cls, report_id: str) -> str:
+        """Get the progress file path"""
+        return os.path.join(cls._get_report_folder(report_id), "progress.json")
 
-@classmethod
-def _get_section_path(cls, report_id: str, section_index: int) -> str:
-    """Get the section Markdown file path"""
-    return os.path.join(cls._get_report_folder(report_id), f"section_{section_index:02d}.md")
+    @classmethod
+    def _get_section_path(cls, report_id: str, section_index: int) -> str:
+        """Get the section Markdown file path"""
+        return os.path.join(cls._get_report_folder(report_id), f"section_{section_index:02d}.md")
 
-@classmethod
-def _get_agent_log_path(cls, report_id: str) -> str:
-    """Get the Agent log file path"""
-    return os.path.join(cls._get_report_folder(report_id), "agent_log.jsonl")
+    @classmethod
+    def _get_agent_log_path(cls, report_id: str) -> str:
+        """Get the Agent log file path"""
+        return os.path.join(cls._get_report_folder(report_id), "agent_log.jsonl")
 
-@classmethod
-def _get_console_log_path(cls, report_id: str) -> str:
-    """Get the console log file path"""
-    return os.path.join(cls._get_report_folder(report_id), "console_log.txt")
+    @classmethod
+    def _get_console_log_path(cls, report_id: str) -> str:
+        """Get the console log file path"""
+        return os.path.join(cls._get_report_folder(report_id), "console_log.txt")
 
-@classmethod
-def get_console_log(cls, report_id: str, from_line: int = 0) -> Dict[str, Any]:
-    """
-    Get the console log content
-    
-    This is the console output log (INFO, WARNING, etc.) during the report generation process,
-    different from the structured log of agent_log.jsonl.
-    
-    Args:
-        report_id: Report ID
-        from_line: Start reading from which line (for incremental fetching, 0 means start from the beginning)
+    @classmethod
+    def get_console_log(cls, report_id: str, from_line: int = 0) -> Dict[str, Any]:
+        """
+        Get the console log content
         
-    Returns:
-        {
-            "logs": [List of log lines],
-            "total_lines": Total number of lines,
-            "from_line": Starting line number,
-            "has_more": Whether there are more logs
-        }
-    """
-    log_path = cls._get_console_log_path(report_id)
-    
-    if not os.path.exists(log_path):
+        This is the console output log (INFO, WARNING, etc.) during the report generation process,
+        different from the structured log of agent_log.jsonl.
+        
+        Args:
+            report_id: Report ID
+            from_line: Start reading from which line (for incremental fetching, 0 means start from the beginning)
+            
+        Returns:
+            {
+                "logs": [List of log lines],
+                "total_lines": Total number of lines,
+                "from_line": Starting line number,
+                "has_more": Whether there are more logs
+            }
+        """
+        log_path = cls._get_console_log_path(report_id)
+        
+        if not os.path.exists(log_path):
+            return {
+                "logs": [],
+                "total_lines": 0,
+                "from_line": 0,
+                "has_more": False
+            }
+        
+        logs = []
+        total_lines = 0
+        
+        with open(log_path, 'r', encoding='utf-8') as f:
+            for i, line in enumerate(f):
+                total_lines = i + 1
+                if i >= from_line:
+                    # Retain the original log line, remove the trailing newline character
+                    logs.append(line.rstrip('\n\r'))
+        
         return {
-            "logs": [],
-            "total_lines": 0,
-            "from_line": 0,
-            "has_more": False
-        }
-    
-    logs = []
-    total_lines = 0
-    
-    with open(log_path, 'r', encoding='utf-8') as f:
-        for i, line in enumerate(f):
-            total_lines = i + 1
-            if i >= from_line:
-                # Retain the original log line, remove the trailing newline character
-                logs.append(line.rstrip('\n\r'))
-    
-    return {
-        "logs": logs,
-        "total_lines": total_lines,
-        "from_line": from_line,
-        "has_more": False  # Reached the end
-    }
+            "logs": logs,
+            "total_lines": total_lines,
+            "from_line": from_line,
+            "has_more": False  # Reached the end
         }
     
     @classmethod

@@ -98,105 +98,105 @@ class SimulationIPCClient:
     
     Used to send commands to the simulation process and wait for responses
     """
-def __init__(self, simulation_dir: str):
-    """
-    Initialize IPC client
-    
-    Args:
-        simulation_dir: Simulation data directory
-    """
-    self.simulation_dir = simulation_dir
-    self.commands_dir = os.path.join(simulation_dir, "ipc_commands")
-    self.responses_dir = os.path.join(simulation_dir, "ipc_responses")
-    
-    # Ensure directories exist
-    os.makedirs(self.commands_dir, exist_ok=True)
-    os.makedirs(self.responses_dir, exist_ok=True)
+    def __init__(self, simulation_dir: str):
+        """
+        Initialize IPC client
+        
+        Args:
+            simulation_dir: Simulation data directory
+        """
+        self.simulation_dir = simulation_dir
+        self.commands_dir = os.path.join(simulation_dir, "ipc_commands")
+        self.responses_dir = os.path.join(simulation_dir, "ipc_responses")
+        
+        # Ensure directories exist
+        os.makedirs(self.commands_dir, exist_ok=True)
+        os.makedirs(self.responses_dir, exist_ok=True)
 
-def send_command(
-    self,
-    command_type: CommandType,
-    args: Dict[str, Any],
-    timeout: float = 60.0,
-    poll_interval: float = 0.5
-) -> IPCResponse:
-    """
-    Send command and wait for response
-    
-    Args:
-        command_type: Command type
-        args: Command arguments
-        timeout: Timeout (seconds)
-        poll_interval: Polling interval (seconds)
+    def send_command(
+        self,
+        command_type: CommandType,
+        args: Dict[str, Any],
+        timeout: float = 60.0,
+        poll_interval: float = 0.5
+    ) -> IPCResponse:
+        """
+        Send command and wait for response
         
-    Returns:
-        IPCResponse
+        Args:
+            command_type: Command type
+            args: Command arguments
+            timeout: Timeout (seconds)
+            poll_interval: Polling interval (seconds)
+            
+        Returns:
+            IPCResponse
+            
+        Raises:
+            TimeoutError: Waiting for response timed out
+        """
+        command_id = str(uuid.uuid4())
+        command = IPCCommand(
+            command_id=command_id,
+            command_type=command_type,
+            args=args
+        )
         
-    Raises:
-        TimeoutError: Waiting for response timed out
-    """
-    command_id = str(uuid.uuid4())
-    command = IPCCommand(
-        command_id=command_id,
-        command_type=command_type,
-        args=args
-    )
-    
-    # Write command file
-    command_file = os.path.join(self.commands_dir, f"{command_id}.json")
-    with open(command_file, 'w', encoding='utf-8') as f:
-        json.dump(command.to_dict(), f, ensure_ascii=False, indent=2)
-    
-    logger.info(f"Send IPC command: {command_type.value}, command_id={command_id}")
-    
-    # Wait for response
-    response_file = os.path.join(self.responses_dir, f"{command_id}.json")
-    start_time = time.time()
-    
-    while time.time() - start_time < timeout:
-        if os.path.exists(response_file):
-            try:
-                with open(response_file, 'r', encoding='utf-8') as f:
-                    response_data = json.load(f)
-                response = IPCResponse.from_dict(response_data)
-                
-                # Clean up command and response files
+        # Write command file
+        command_file = os.path.join(self.commands_dir, f"{command_id}.json")
+        with open(command_file, 'w', encoding='utf-8') as f:
+            json.dump(command.to_dict(), f, ensure_ascii=False, indent=2)
+        
+        logger.info(f"Send IPC command: {command_type.value}, command_id={command_id}")
+        
+        # Wait for response
+        response_file = os.path.join(self.responses_dir, f"{command_id}.json")
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            if os.path.exists(response_file):
                 try:
-                    os.remove(command_file)
-                    os.remove(response_file)
-                except OSError:
-                    pass
-                
-                logger.info(f"Received IPC response: command_id={command_id}, status={response.status.value}")
-                return response
-            except (json.JSONDecodeError, KeyError) as e:
-                logger.warning(f"Failed to parse response: {e}")
+                    with open(response_file, 'r', encoding='utf-8') as f:
+                        response_data = json.load(f)
+                    response = IPCResponse.from_dict(response_data)
+                    
+                    # Clean up command and response files
+                    try:
+                        os.remove(command_file)
+                        os.remove(response_file)
+                    except OSError:
+                        pass
+                    
+                    logger.info(f"Received IPC response: command_id={command_id}, status={response.status.value}")
+                    return response
+                except (json.JSONDecodeError, KeyError) as e:
+                    logger.warning(f"Failed to parse response: {e}")
+            
+            time.sleep(poll_interval)
         
-        time.sleep(poll_interval)
-    
-    # Timeout
-    logger.error(f"Waiting for IPC response timed out: command_id={command_id}")
-    
-    # Clean up command file
-    try:
-        os.remove(command_file)
-    except OSError:
-        pass
-    
-    raise TimeoutError(f"Waiting for command response timed out ({timeout} seconds)")
+        # Timeout
+        logger.error(f"Waiting for IPC response timed out: command_id={command_id}")
+        
+        # Clean up command file
+        try:
+            os.remove(command_file)
+        except OSError:
+            pass
+        
+        raise TimeoutError(f"Waiting for command response timed out ({timeout} seconds)")
 
-def send_interview(
-    self,
-    agent_id: int,
-    prompt: str,
-    platform: str = None,
-    timeout: float = 60.0
-) -> IPCResponse:
-    """
-    Send single Agent interview command
-    
-    Args:
-        agent_id: Agent ID
+    def send_interview(
+        self,
+        agent_id: int,
+        prompt: str,
+        platform: str = None,
+        timeout: float = 60.0
+    ) -> IPCResponse:
+        """
+        Send single Agent interview command
+        
+        Args:
+            agent_id: Agent ID
             prompt: Interview questions
             platform: Specified platform (optional)
                 - "twitter": Interview only on Twitter platform

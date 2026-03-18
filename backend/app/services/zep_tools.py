@@ -1438,7 +1438,7 @@ Return a list of sub-problems in JSON format."""
                 meaningful.sort(key=len, reverse=True)
                 key_quotes = [s + "." for s in meaningful[:3]]
 
-                # Strategy 2 (Supplementary): Correctly paired long text within Chinese quotes 「」
+                # Strategy 2 (Supplementary): Correctly paired long text within Chinese 
                 if not key_quotes:
                     paired = re.findall(r'\u201c([^\u201c\u201d]{15,100})\u201d', clean_text)
                     paired += re.findall(r'\u300c([^\u300c\u300d]{15,100})\u300d', clean_text)
@@ -1595,7 +1595,6 @@ Simulation background:
 {simulation_requirement if simulation_requirement else "Not provided"}
 
 List of selectable Agents (total {len(agent_summaries)}):
-"""
 {json.dumps(agent_summaries, ensure_ascii=False, indent=2)}
 
 Please select up to {max_agents} agents most suitable for the interview and explain the reasons for your choice."""

@@ -9,7 +9,7 @@ export default defineConfig({
     port: 3000,
     cors: true,
     strictPort: true,
-    allowedHosts: ['.litng.ai'],
+    allowedHosts: ['*'],
     proxy: {
       '/api': {
         target: 'http://localhost:5001',
