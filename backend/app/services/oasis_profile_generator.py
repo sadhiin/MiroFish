@@ -1095,101 +1095,101 @@ Important:
                     user_char = f"{profile.bio} {profile.persona}"
                 # Handle newline characters (replace with spaces in CSV)
                 user_char = user_char.replace('\n', ' ').replace('\r', ' ')
-# description: Brief introduction for external display
-description = profile.bio.replace('\n', ' ').replace('\r', ' ')
+                # description: Brief introduction for external display
+                description = profile.bio.replace('\n', ' ').replace('\r', ' ')
 
-row = [
-    idx,                    # user_id: Sequential ID starting from 0
-    profile.name,           # name: Real name
-    profile.user_name,      # username: Username
-    user_char,              # user_char: Complete persona (for internal LLM use)
-    description             # description: Brief introduction (external display)
-]
-writer.writerow(row)
+                row = [
+                    idx,                    # user_id: Sequential ID starting from 0
+                    profile.name,           # name: Real name
+                    profile.user_name,      # username: Username
+                    user_char,              # user_char: Complete persona (for internal LLM use)
+                    description             # description: Brief introduction (external display)
+                ]
+                writer.writerow(row)
 
-logger.info(f"Saved {len(profiles)} Twitter Profiles to {file_path} (OASIS CSV format)")
+        logger.info(f"Saved {len(profiles)} Twitter Profiles to {file_path} (OASIS CSV format)")
 
-def _normalize_gender(self, gender: Optional[str]) -> str:
-    """
-    Normalize the gender field to the English format required by OASIS
-    
-    OASIS requirements: male, female, other
-    """
-    if not gender:
-        return "other"
-    
-    gender_lower = gender.lower().strip()
-    
-    # Chinese mapping
-    gender_map = {
-        "Male": "male",
-        "Female": "female",
-        "Organization": "other",
-        "Other": "other",
-        # English already exists
-        "male": "male",
-        "female": "female",
-        "other": "other",
-    }
-    
-    return gender_map.get(gender_lower, "other")
+    def _normalize_gender(self, gender: Optional[str]) -> str:
+        """
+        Normalize the gender field to the English format required by OASIS
 
-def _save_reddit_json(self, profiles: List[OasisAgentProfile], file_path: str):
-    """
-    Save Reddit Profile in JSON format
-    
-    Use the format consistent with to_reddit_format() to ensure OASIS can read it correctly.
-    Must include the user_id field, which is the key for OASIS agent_graph.get_agent() matching!
-    
-    Required fields:
-    - user_id: User ID (integer, used to match poster_agent_id in initial_posts)
-    - username: Username
-    - name: Display name
-    - bio: Introduction
-    - persona: Detailed persona
-    - age: Age (integer)
-    - gender: "male", "female", or "other"
-    - mbti: MBTI type
-    - country: Country
-    """
-    data = []
-    for idx, profile in enumerate(profiles):
-        # Use the format consistent with to_reddit_format()
-        item = {
-            "user_id": profile.user_id if profile.user_id is not None else idx,  # Key: must include user_id
-            "username": profile.user_name,
-            "name": profile.name,
-            "bio": profile.bio[:150] if profile.bio else f"{profile.name}",
-            "persona": profile.persona or f"{profile.name} is a participant in social discussions.",
-            "karma": profile.karma if profile.karma else 1000,
-            "created_at": profile.created_at,
-            # OASIS required fields - ensure all have default values
-            "age": profile.age if profile.age else 30,
-            "gender": self._normalize_gender(profile.gender),
-            "mbti": profile.mbti if profile.mbti else "ISTJ",
-            "country": profile.country if profile.country else "China",
+        OASIS requirements: male, female, other
+        """
+        if not gender:
+            return "other"
+
+        gender_lower = gender.lower().strip()
+
+        # Chinese mapping
+        gender_map = {
+            "Male": "male",
+            "Female": "female",
+            "Organization": "other",
+            "Other": "other",
+            # English already exists
+            "male": "male",
+            "female": "female",
+            "other": "other",
         }
-        
-        # Optional fields
-        if profile.profession:
-            item["profession"] = profile.profession
-        if profile.interested_topics:
-            item["interested_topics"] = profile.interested_topics
-        
-        data.append(item)
-    
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    
-    logger.info(f"Saved {len(profiles)} Reddit Profiles to {file_path} (JSON format, including user_id field)")
 
-# Retain old method name as an alias for backward compatibility
-def save_profiles_to_json(
-    self,
-    profiles: List[OasisAgentProfile],
-    file_path: str,
-    platform: str = "reddit"
-):
-    """[Deprecated] Please use the save_profiles() method"""
-    logger.warning("save_profiles_to_json is deprecated, please use the save_profiles method")
-    self.save_profiles(profiles, file_path, platform)
+        return gender_map.get(gender_lower, "other")
+
+    def _save_reddit_json(self, profiles: List[OasisAgentProfile], file_path: str):
+        """
+        Save Reddit Profile in JSON format
+
+        Use the format consistent with to_reddit_format() to ensure OASIS can read it correctly.
+        Must include the user_id field, which is the key for OASIS agent_graph.get_agent() matching!
+
+        Required fields:
+        - user_id: User ID (integer, used to match poster_agent_id in initial_posts)
+        - username: Username
+        - name: Display name
+        - bio: Introduction
+        - persona: Detailed persona
+        - age: Age (integer)
+        - gender: "male", "female", or "other"
+        - mbti: MBTI type
+        - country: Country
+        """
+        data = []
+        for idx, profile in enumerate(profiles):
+            # Use the format consistent with to_reddit_format()
+            item = {
+                "user_id": profile.user_id if profile.user_id is not None else idx,  # Key: must include user_id
+                "username": profile.user_name,
+                "name": profile.name,
+                "bio": profile.bio[:150] if profile.bio else f"{profile.name}",
+                "persona": profile.persona or f"{profile.name} is a participant in social discussions.",
+                "karma": profile.karma if profile.karma else 1000,
+                "created_at": profile.created_at,
+                # OASIS required fields - ensure all have default values
+                "age": profile.age if profile.age else 30,
+                "gender": self._normalize_gender(profile.gender),
+                "mbti": profile.mbti if profile.mbti else "ISTJ",
+                "country": profile.country if profile.country else "China",
+            }
+
+            # Optional fields
+            if profile.profession:
+                item["profession"] = profile.profession
+            if profile.interested_topics:
+                item["interested_topics"] = profile.interested_topics
+
+            data.append(item)
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"Saved {len(profiles)} Reddit Profiles to {file_path} (JSON format, including user_id field)")
+
+    # Retain old method name as an alias for backward compatibility
+    def save_profiles_to_json(
+        self,
+        profiles: List[OasisAgentProfile],
+        file_path: str,
+        platform: str = "reddit"
+    ):
+        """[Deprecated] Please use the save_profiles() method"""
+        logger.warning("save_profiles_to_json is deprecated, please use the save_profiles method")
+        self.save_profiles(profiles, file_path, platform)
